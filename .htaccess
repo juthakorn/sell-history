@@ -1,0 +1,10 @@
+# Enable PHP5 for OVH Hosting
+# SetEnv PHP_VER 5
+
+# Disable Indexes
+# Options -Indexes
+
+#<IfModule mod_rewrite.c>
+#   RewriteEngine on
+# ErrorDocument 404 /404.php
+#</IfModule>

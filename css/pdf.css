@@ -1,0 +1,28 @@
+body {
+    background-color: #FFF;;
+}
+.panel-default {
+    border-color: #ddd;
+}
+.panel {
+    margin-bottom: 20px;
+    background-color: #fff;
+    box-shadow: none;
+    border: 0;
+}
+.insurance-number {
+    color: black
+}
+/*.font{
+    font-weight: normal;
+    text-align: left !important;
+    padding-left: 20px
+}
+.font span.font-weight + span{
+    border-bottom: 1px dotted #999 !important;
+    margin: 0 8px !important;
+    padding: 0 8px !important;
+}
+.font-weight{
+    font-weight: bold;
+}*/
