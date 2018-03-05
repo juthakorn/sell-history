@@ -11,7 +11,7 @@ if ($go === 'add_sell') {
     del_sell();
 }else if ($go === 'edit_sell') {
     edit_sell();
-}else if ($go === 'del_sell_all') {
+}else if ($go === 'del_sell_all') { 
     del_sell_all();
 }
 
