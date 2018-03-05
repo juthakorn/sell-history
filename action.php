@@ -645,7 +645,7 @@ function save_sell_temp($txt){
         'modified' =>date('Y-m-d h:i:s'),
         'status' => 0,
         'type_pay' => (!empty($data['cod']) ? 2 : 1),
-        'customer_pay' => (!empty($data['cod']) ? $data['cod'] : "0"),
+        'customer_pay' => (!empty($data['cod']) ? $data['cod'] : ""),
         'status_pay' => (!empty($data['cod']) ? 2 : 1),
         'confirm_code' => $confirm_code
     );
