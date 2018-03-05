@@ -53,7 +53,7 @@
             <div class="col-sm-10"> 
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox" class="checkboxs" name="type_product[]" value="เสื้อคู่">เสื้อคู่
+                        <input type="checkbox" class="checkboxs" name="type_product[]" value="เสื้อคู่" checked="">เสื้อคู่
                     </label>
                 </div>
                 <div class="checkbox">
