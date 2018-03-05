@@ -647,7 +647,7 @@ function save_sell_temp($txt){
         'type_pay' => (!empty($data['cod']) ? 2 : 1),
         'customer_pay' => (!empty($data['cod']) ? $data['cod'] : ""),
         'status_pay' => (!empty($data['cod']) ? 2 : 1),
-        'confirm_code' => $confirm_code 
+        'confirm_code' => $confirm_code
     );
     $database->insert('sell',$insert_sell);
     $sell_id = $database->lastid();
