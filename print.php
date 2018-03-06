@@ -26,7 +26,7 @@
         }
 
         page[size="A4"] {  
-          width: 23cm;
+          width: 21cm;
         }
         body{background: rgb(204,204,204);font-size: 16px;font-family: 'Kanit', sans-serif;padding: 0;}
         page{
