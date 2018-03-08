@@ -21,14 +21,15 @@
         @media print {
             body{margin: 0mm 0mm 0mm 0mm;}
             .page-break {page-break-after: always;}
-            @page { margin: 0.2cm; }
+            @page { margin: 0.2cm;margin-top: 0.5cm; }
+            .top1 .panel{border-top: 1px solid #000}
 
         }
 
         page[size="A4"] {  
           width: 21cm;
         }
-        body{background: rgb(204,204,204);font-size: 16px;font-family: 'Kanit', sans-serif;padding: 0;}
+        body{background: rgb(204,204,204);font-size: 22px;font-family: 'Kanit', sans-serif;padding: 0;}
         page{
             background: white;
             display: block;
@@ -36,17 +37,19 @@
             margin-bottom: 0.5cm;
             box-shadow: 0 0 0.5cm rgba(0,0,0,0.5);
         }
-        .panel{border: 0; box-shadow: none;border-radius:0;margin-bottom: 0px;border-right: 1px solid #000;border-bottom: 1px solid #000}
+        .panel{border: 0; box-shadow: none;border-radius:0;margin-bottom: 0px;border-right: 1px solid #000;border-bottom: 1px solid #000;}
         .one .panel{border-left: 1px solid #000;}
         .top .panel{border-top: 1px solid #000}
         .container{padding: 5px;width: 100%;}
         .col-50{padding: 0;width: 50%; vertical-align: top;float: left;}
         .recipient{font-weight: 600;padding-bottom: 10px;}
         .panel-body{padding: 28px 10px 20px 35px;}        
-        .cod{font-weight: 600; padding-top: 18px;font-size: 18px;text-align: center;}
+        .cod{font-weight: 600; padding-top: 18px;font-size: 24px;text-align: center;}
         
-        .order{ line-height: 8px;font-size: 11px;border-top:1px solid #000;padding: 6px 35px;}
-        .order p:last-child{margin-bottom: 0}
+        .order{ line-height: 8px;font-size: 11px;border-top:1px solid #000;padding: 6px 35px 4px 35px;}   
+        .order p{margin-bottom:6px}     
+        .order p:last-child{margin-bottom:0}
+
         div a{display: none;}
     </style>
 </head>
@@ -68,6 +71,7 @@
         <div class="container" >   
                 
             <?php           
+            $chk = 0;
             foreach ($datas as $key => $value) {
                 
                 $txttombon = "ตำบล";
@@ -79,16 +83,24 @@
                     $txtprovince = "";
                 }
                 $sell_details = $database->selects("sell_detail", "where sell_id ='".$value['sell_id']."'");
-                        
-                if(($key) % 8 == 0 && ($key != 0)){ 
+                  
+                if($chk == 2){ 
+                    $chk=0;
+                } 
+                if($chk == 1){
+                    $chk++;
+                }    
+                if(($key) % 6 == 0 && ($key != 0)){ 
                     echo "<div class=\"page-break\"></div>";
-                }  
+                    $chk++;
+                }
 
+                  
                 
              ?>
 
 
-                <div class="col-50 <?=$key%2 == 0 ? "one" : "two"?> <?=$key == 0 || $key == 1 ? "top" : ""?>"> 
+                <div class="col-50 <?=$key%2 == 0 ? "one" : "two"?> <?=$key == 0 || $key == 1 ? "top" : ""?> <?=$chk < 3 && $chk != 0 ? "top1" : ""?>"> 
                     <div class="panel panel-default">                       
                         <div class="panel-body">   
                             <div class="recipient">ผู้รับ</div>
