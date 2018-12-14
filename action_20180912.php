@@ -1,4 +1,4 @@
-<?PHP
+﻿<?PHP
 
 //error_reporting(E_ALL);
 session_start();
@@ -470,7 +470,6 @@ function find_stock(){
 
 function save_sell_temp($txt){
     global $database;
-    $text_begin = "";
     /*$txt = 'บันทึก-
             ช-สุรีย์ฉาย นามบุญ  
             ส-7/252 ม.6 บริษัทฟิชเชอร์แอนด์พายเคิ้ล นิคมอุตสาหกรรมอมตะซิตี้ ต-มาบยางพร อ-ปลวกแดง จ-ระยอง 21140
@@ -478,113 +477,63 @@ function save_sell_temp($txt){
             รบ-ดำหัวใจ,D-SLong2,L,กรมริ้วเหลือง,D-S,L';*/
            
     $str = trim($txt);
-    $regex = [
-        '/ช[-|:]/'              => '|ช:',
-        '/ส[-|:]/'              => '|ส:',
-        '/ต[-|:]/'              => '|ต:',
-        '/อ[-|:]/'              => '|อ:',
-        '/จ[-|:]/'              => '|จ:',
-        '/ท[-|:]|โทร(\.)?|เบอร์โทร/'     => '|ท:',
-        '/ร[-|:]/'              => '|ร:',
-        '/รบ[-|:]/'             => '|รบ:',
-        '/cod[-|:]|ปลายทาง(\s+)?|cod(\s+)?/'  => '|cod:',
-    ];
-    
-    foreach($regex as $search => $replace ){
-        $str = preg_replace($search, $replace, $str);
-    }
-    
-    
-    $data = find_text($str);
-//    pr($data);
-    
-    if(empty($data['customer_tumbon'])){        
-        $regex = array_merge($regex, ['/ต[.]|ตำบล|แขวง/'   => '|ต:']);
-        foreach($regex as $search => $replace ){
-            $str = preg_replace($search, $replace, $str);
-        }
-    }
-    if(empty($data['customer_umpher'])){
-        $regex = array_merge($regex, ['/อ[.]|อำเภอ|เขต/'   => '|อ:']);
-        foreach($regex as $search => $replace ){
-            $str = preg_replace($search, $replace, $str);
-        }
-    }
-    if(empty($data['customer_province'])){
-        $regex = array_merge($regex, ['/จ[.]|จังหวัด/'   => '|จ:']);
-        foreach($regex as $search => $replace ){
-            $str = preg_replace($search, $replace, $str);
-        }
-    }
-    if(empty($data['customer_tel'])){        
-        preg_match('/[0-9]{10}/', $str, $match);        
-        if(empty($match)){
-            preg_match('/[0-9]{3}(-)?(\s+)?[0-9]{7,}/', $str, $match);
-        }
-        if(empty($match)){
-            preg_match('/[0-9]{3}(-)?(\s+)?[0-9]{3}(-)?(\s+)?[0-9]{4}/', $str, $match);
-        }
-        if(!empty($match)){
-            $match = array_shift($match);        
-            $str = str_replace($match , "|ท:".$match, $str);            
-            foreach($regex as $search => $replace ){
-                $str = preg_replace($search, $replace, $str);
+    $str = preg_replace('/ช[-|:]/', '|ช:', $str);
+    $str = preg_replace('/ส[-|:]/', '|ส:', $str);
+    $str = preg_replace('/ต[-|:]/', '|ต:', $str);
+    $str = preg_replace('/อ[-|:]/', '|อ:', $str);
+    $str = preg_replace('/จ[-|:]/', '|จ:', $str);
+    $str = preg_replace('/ท[-|:]/', '|ท:', $str);
+    $str = preg_replace('/ร[-|:]/', '|ร:', $str);
+    $str = preg_replace('/รบ[-|:]/', '|รบ:', $str);
+    $str = preg_replace('/cod[-|:]/', '|cod:', $str);
+    $arr_str = explode('|', $str);
+//    pr($arr_str);
+    $data = array();
+    foreach ($arr_str as $key => $value) {
+         
+        preg_match('/(ช|ส|ต|อ|จ|ท|ร|รบ|cod):/i', $value, $match );
+        if(isset($match[0])){
+            $tmp = trim(str_replace($match[0], '', $value));
+            switch ($match[0]) {
+                case 'ช:':
+                    $data['customer_name'] = $tmp;
+                    break;
+                case 'ส:':
+                    $data['customer_address'] = $tmp;
+                    break;
+                case 'ต:':
+                    $data['customer_tumbon'] = $tmp;
+                    break;
+                case 'อ:':
+                    $data['customer_umpher'] = $tmp;
+                    break;
+                case 'จ:':
+                    if(preg_match('/[0-9]{5}/i', $tmp, $match22 )){
+                        $tmp = trim(str_replace($match22[0], '', $tmp));
+                        $data['customer_province'] = $tmp;
+                        $data['customer_postal'] = $match22[0];
+                    }else{
+                        $data['customer_province'] = $tmp;
+                    }               
+                    
+                    break;
+                case 'ท:':
+                    $data['customer_tel'] = $tmp;
+                    break;
+                case 'ร:':
+                    $data['detail'] = $tmp;
+                    break;
+                case 'รบ:':
+                    $data['detail_me'] = $tmp;
+                    break;
+                case 'cod:':
+                    $data['cod'] = $tmp;
+                    break;    
+                default:
+                    break;
             }
         }
     }
-    
-    $data = find_text($str);
-    
-    //********************** found address ************************[start]
-    $find_address = [];
-    $address  = $database->selects("address",  "where postcode = ".$data['customer_postal'] . " AND sub_district = '" . $data['customer_tumbon'] . "'");
-//    pr($address);
-    if(count($address) === 1){
-        $find_address = $address[0];
-    }else{        
-        $address  = $database->selects("address",  "where postcode = ".$data['customer_postal']);
-//        pr($address);
-        $similar = [];
-        foreach ($address as $key => $value) {
-            similar_text($value['sub_district'], $data['customer_tumbon'], $per);
-            pr($value['sub_district'] . ", " . $data['customer_tumbon'] ." ======== ".$per);
-            if($per > 75){
-                $similar[(int)$per] = $value;                
-            }
-        }
-        if(!empty($similar)){
-            $text_begin = "ตรวจสอบด้วยนะครับ\n";
-            if(count($similar) === 1){
-                $find_address = array_shift($similar);
-            }else{  
-                krsort($similar);
-    //            pr($similar);
-                $find_address = array_shift($similar);
-            }
-        }
-    }
-    
-    if(!empty($find_address)){
-        $data['customer_tumbon'] = $find_address['sub_district'];
-        $data['customer_umpher'] = $find_address['district'];
-        $data['customer_province'] = $find_address['province'];
-        $data['customer_postal'] = $find_address['postcode'];
-    }else{
-        
-        if(!empty($address)){
-            $text_begin = "ไม่พบที่อยู่ในฐานข้อมูล ตรวจสอบด้วยนะครับ\n";
-            $text_begin .= "รหัส ".$data['customer_postal']." มีดังนี้\n";
-            foreach ($address as $key => $value) {
-                $text_begin .= $value['sub_district']."   ".$value['district']."  ".$value['province']."\n";
-            }
-        }else{
-            return "ไม่พบรหัสไปรษณีย์ในฐานข้อมูล ตรวจสอบด้วยนะครับ\n";
-            
-        }
-    }
-//    pr($find_address);
-//pr($data);exit;
-    //********************** found address ************************[end]
 
 
     $text_err = "";
@@ -594,20 +543,14 @@ function save_sell_temp($txt){
     else if(empty($data['customer_address'])){
         $text_err = "ไม่มีแท็กที่อยู่ ส ตามด้วย - หรือ : \nเช่น ส-99/99 หมู่ 9 ถนนสวยงาม \nกรุณาลองใหม่...!";
     }
-    else if(empty($data['customer_tumbon'])){
-        $text_err = "ไม่มีแท็กตำบล/แขวง ต ตามด้วย - หรือ : หรือ . \nเช่น ต-เที่ยงแท้ \nกรุณาลองใหม่...!";
-    }
     else if(empty($data['customer_umpher'])){
-        $text_err = "ไม่มีแท็กอำเภอ/เขต อ ตามด้วย - หรือ : หรือ . \nเช่น อ-สรรคบุรี \nกรุณาลองใหม่...!";
+        $text_err = "ไม่มีแท็กอำเภอ/เขต อ ตามด้วย - หรือ : \nเช่น อ-สรรคบุรี \nกรุณาลองใหม่...!";
     }
     else if(empty($data['customer_province'])){
-        $text_err = "ไม่มีแท็กจังหวัด จ ตามด้วย - หรือ : หรือ . \nเช่น จ-ชัยนาท \nกรุณาลองใหม่...!";
+        $text_err = "ไม่มีแท็กจังหวัด จ ตามด้วย - หรือ : \nเช่น จ-ชัยนาท \nกรุณาลองใหม่...!";
     }
     else if(empty($data['customer_postal'])){
         $text_err = "ไม่มีรหัสไปรษณีย์ หรือ รหัสไปรษณีย์ไม่ถูกต้อง \nจ ตามด้วย - หรือ : เช่น จ-ชัยนาท 17140 กรุณาลองใหม่...!";
-    }
-    else if(empty($data['customer_tel'])){
-        $text_err = "ไม่มีแท็กเบอร์โทร ท ตามด้วย - หรือ : หรือ . หรือ โทร \nเช่น โทร.085-5409575 \nกรุณาลองใหม่...!";
     }
     else if(empty($data['detail']) && empty($data['detail_me'])){
         $text_err = "ไม่มีแท็กรายการสินค้า \nร ตามด้วย - หรือ : \nเช่น ร-แดงหัวใจ,D-S,M ถ้า 1 ไซส์มากกว่า 1 ตัว \nเช่น ร-แดงหัวใจ,D-S2,M3 \nกรุณาลองใหม่...!";
@@ -626,8 +569,8 @@ function save_sell_temp($txt){
     if(!empty($data['detail'])){        
         $tempproduct = get_arr_product($data['detail']);        
         foreach ($tempproduct as $key => $value) {
-            $data['txt_detail'] .= $value['name']." ".strtoupper($value['size'])." ". $value['qty']." ตัว\n";
-        }
+            $data['txt_detail'] .= $value['name']." ".$value['size']." ". $value['qty']." ตัว\n";
+        }        
 //        pr($data['detail']);exit;
     }
 
@@ -721,7 +664,7 @@ function save_sell_temp($txt){
     }
 
     
-    $txt_return = get_text_massage($sell_id, 0 ,$text_begin);    
+    $txt_return = get_text_massage($sell_id, 0);    
 //    pr($sell_id);
     return $txt_return;
 }
@@ -844,7 +787,7 @@ function get_arr_product($txt){
 /*
  * param $type 0 = create,1 = confrim
  */
-function get_text_massage($sell_id, $type, $textbegin = ""){
+function get_text_massage($sell_id,$type){
     global $database;
     $data  = $database->select("sell a inner join sell_date b on a.sell_date_id = b.sell_date_id",  "where a.sell_id = ".$sell_id);
     $sell_detail  = $database->selects("sell_detail",  "where sell_id = ".$sell_id);
@@ -857,10 +800,6 @@ function get_text_massage($sell_id, $type, $textbegin = ""){
     $data['txt_detail_me'] = trim($data['txt_detail_me']);
     
     $txt_return = "";
-    if(!empty($textbegin)){
-        $txt_return .= $textbegin."\n";
-    }
-    
     if($type == 0){
         $txt_return .= "จัดส่ง\n";
     }
@@ -929,26 +868,6 @@ function get_stock($str){
     return $return;
 }
 
-
-function get_stock_code($str){
-    global $database;
-    
-    $conditions = "p_id LIKE '".$str."%' ";
-        
-    $products = $database->selects("products",  "where " .$conditions . " order by position ASC"); 
-    $return = array();
-    $return['txt'] = "";
-    if(empty($products)){
-        $return['txt'] = "ไม่พบรายการหรือสินค้าหมด...!\n􀄃􀅁pencil􏿿แนะนำการใช้งานพิมพ์ help";
-        $return['count'] = 0;
-    }else{        
-        foreach ($products as $key => $value) {
-            $return['txt'] .= $value['name'] . " เหลือ " .  $value['qty'] . " ตัว\n";            
-        }
-        $return['count'] = sizeof($products);
-    }
-    return $return;
-}
 
 function get_stock_by_size($txt){
     global $database;
@@ -1092,11 +1011,7 @@ function line_bot(){
                     $txt = "";
                     $muti_message = FALSE;
                     $custom_message = [];
-                    if(preg_match('/บันทึก[-|:]/i', $text) || preg_match('/^บ[-|:]/i', $text)){
-                        $return = save_sell_temp($text);
-                        $txt = trim($return);
-                    }
-                    else if(preg_match('/(ส[-|:]|ช[-|:])/i', $text)){
+                    if(preg_match('/บันทึก[-|:]/i', $text)){
                         $return = save_sell_temp($text);
                         $txt = trim($return);
                     }
@@ -1120,20 +1035,6 @@ function line_bot(){
                         $return = set_stock_bot($text);
                         $txt = trim($return);
                     }
-                    else if(preg_match('/^[0-9]{5}/i', $text)){
-                        $return = get_address($text);
-                        $txt = trim($return);
-                    }
-                    else if(preg_match('/^(ต\.|ตำบล|แขวง)/i', $text)){
-                        $return = get_address($text);
-                        $txt = trim($return);
-                    }else if(preg_match('/^(อ\.|อำเภอ|เขต)/i', $text)){
-                        $return = get_address($text);
-                        $txt = trim($return);
-                    }else if(preg_match('/^(จ\.|จังหวัด)/i', $text)){
-                        $return = get_address($text);
-                        $txt = trim($return);
-                    }
                     else if($text == 'help'){ 
                         if(in_array($event['source']['userId'], $Owner_user)){
                             $txt = line_help('help_owner', $muti_message, $custom_message);
@@ -1150,10 +1051,6 @@ function line_bot(){
                         $return = get_stock($text);
                         $txt = isset($return['txt']) ? trim($return['txt']) : "กรุณาลองใหม่";
                     } 
-                    else if(preg_match('/^vg|^fr/i', $text)){
-                        $return = get_stock_code($text);
-                        $txt = isset($return['txt']) ? trim($return['txt']) : "กรุณาลองใหม่";
-                    }
                     else{
                         $return = get_stock($text.">"); //ใส่ให้เลย
                         $txt = isset($return['txt']) ? trim($return['txt']) : "กรุณาลองใหม่";                        
@@ -1307,40 +1204,6 @@ function payment() {
     
 }
 
-function get_address($txt) {
-    global $database;
-    $return = "";
-    $address = [];
-    if(preg_match('/[0-9]{5}/', $txt)){
-        $return .= "รหัสไปรษณีย์ ".$txt."\n\n";
-        $address  = $database->selects("address",  "where postcode = ".$txt);
-    }else if(preg_match('/^(ต\.|ตำบล|แขวง)/i', $txt, $title)){
-        $title = array_shift($title);
-        $temp = str_replace($title, "", $txt);
-        $return .= $title ." ".$temp."\n\n";
-        $address  = $database->selects("address",  "where sub_district = '".$temp."'");
-    }else if(preg_match('/^(อ\.|อำเภอ|เขต)/i', $txt, $title)){
-        $title = array_shift($title);
-        $temp = str_replace($title, "", $txt);
-        $return .= $title ." ".$temp."\n\n";
-        $address  = $database->selects("address",  "where district = '".$temp."'");
-    }else if(preg_match('/^(จ\.|จังหวัด)/i', $txt, $title)){
-        $title = array_shift($title);
-        $temp = str_replace($title, "", $txt);
-        $return .= $title ." ".$temp."\n\n";
-        $address  = $database->selects("address",  "where province = '".$temp."'");
-    }
-    
-    if(!empty($address)){
-        
-        foreach ($address as $key => $value) {
-            $return .= $value['sub_district']."   ".$value['district']."  ".$value['province']."  ".$value['postcode']."\n";
-        }
-    }
-    
-    return $return;
-    
-}
 function line_template(){
     
     return $data = [
@@ -1419,10 +1282,6 @@ function fbapi() {
         $return = get_stock($text);
         $txt = isset($return['txt']) ? trim($return['txt']) : "กรุณาลองใหม่";
     } 
-    else if(preg_match('/^vg|^fr/i', $text)){
-        $return = get_stock_code($text);
-        $txt = isset($return['txt']) ? trim($return['txt']) : "กรุณาลองใหม่";
-    }
     else{
         $return = get_stock($text.">"); //ใส่ให้เลย
         $txt = isset($return['txt']) ? trim($return['txt']) : "กรุณาลองใหม่";                        
@@ -1472,63 +1331,4 @@ function CallAPI($method, $url, $data = false)
 
     return $result;
 }
-
-  
-function find_text($str){
-    
-    $data = array();
-    $arr_str = explode('|', $str);
-    foreach ($arr_str as $key => $value) {
-         
-        preg_match('/(ช|ส|ต|อ|จ|ท|ร|รบ|cod):/i', $value, $match );
-        if(isset($match[0])){
-            $tmp = trim(str_replace($match[0], '', $value));
-            switch ($match[0]) {
-                case 'ช:':
-                    if(preg_match('/^(นาย|นางสาว|นาง|น\.ส\.|คุณครู|คุณ|ครู|)/', $tmp, $ma)){
-                        if(!empty($ma)){
-                            $tmp = str_replace(array_shift($ma), "", $tmp);
-                        }
-                    }
-                    $data['customer_name'] = trim($tmp);
-                    break;
-                case 'ส:':
-                    $data['customer_address'] = $tmp;
-                    break;
-                case 'ต:':
-                    $data['customer_tumbon'] = preg_replace('!\s+!', '', $tmp);
-                    break;
-                case 'อ:':
-                    $data['customer_umpher'] = preg_replace('!\s+!', '', $tmp);
-                    break;
-                case 'จ:':
-                    if(preg_match('/[0-9]{5}/i', $tmp, $match22 )){
-                        $tmp = trim(str_replace($match22[0], '', $tmp));
-                        $data['customer_province'] = preg_replace('!\s+!', '', $tmp);
-                        $data['customer_postal'] = trim($match22[0]);
-                    }else{
-                        $data['customer_province'] = $tmp;
-                    }               
-                    
-                    break;
-                case 'ท:':
-                    $data['customer_tel'] = $tmp;
-                    break;
-                case 'ร:':
-                    $data['detail'] = $tmp;
-                    break;
-                case 'รบ:':
-                    $data['detail_me'] = $tmp;
-                    break;
-                case 'cod:':
-                    $data['cod'] = $tmp;
-                    break;    
-                default:
-                    break;
-            }
-        }
-    }
-    return $data;
-}
-
 ?> 

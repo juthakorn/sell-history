@@ -39,12 +39,14 @@
         </div>
         <script type="text/javascript">
             jQuery(document).ready(function () {
-                $('.num').blur(function () {                    
-                    var numberRegex = /^[+-]?\d+(\.\d+)?([eE][+-]?\d+)?$/;
-                    if (!numberRegex.test($(this).val()) && $(this).val().length > 0) {
-                        alert('กรุณากรอกเป็นตัวเลขเท่านั้น');
-                        $(this).val("").focus();
-                        return false;
+                $('.num').blur(function () {
+                    if($(this).val() != ""){
+                        var numberRegex = /^[+-]?\d+(\.\d+)?([eE][+-]?\d+)?$/;
+                        if (!numberRegex.test($(this).val()) && $(this).val().length > 0) {
+                            alert('กรุณากรอกเป็นตัวเลขเท่านั้น');
+                            $(this).val("").focus();
+                            return false;
+                        }
                     }
                 });
                 
