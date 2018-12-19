@@ -1,0 +1,13 @@
+{
+    "name": "tom/sell-history",
+    "authors": [
+        {
+            "name": "Tom",
+            "email": "juthakorn@hotmail.com"
+        }
+    ],
+    "require": {
+        "bacon/bacon-qr-code": "^2.0",
+        "phpoffice/phpexcel": "^1.8"
+    }
+}

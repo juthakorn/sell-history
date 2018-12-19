@@ -2,14 +2,15 @@
 
     require_once 'include/connect.php'; 
     require_once 'include/function.php';
+    require 'vendor/autoload.php';
+    use PHPExcel; 
     export();
     function export() {
         global $database;
         
-        $data = $database->selects("sell a inner join sell_date b on a.sell_date_id = b.sell_date_id", "where b.sell_date > '2018-05-14' and b.sell_date < '2018-09-25' and  a.type_pay = 2 and a.status = 1 and  a.status_pay = 2 group by a.sell_id");
+        $data = $database->selects("sell a inner join sell_date b on a.sell_date_id = b.sell_date_id", "where a.type_pay = 2 and a.status = 1 and  a.status_pay = 2 group by a.sell_id");
 //        pr(count($data));
 //        pr($data[0]);exit;
-        require_once 'vendor/PHPExcel/Classes/PHPExcel.php';
         $objWorkbook = new PHPExcel();
         
         //Create Work Sheet
@@ -85,7 +86,7 @@
         
         
         // output excel
-        $download_name = "horse-".date('Y-m-d')."_".time();
+        $download_name = "tm-shop-".date('Y-m-d')."_".time();
         // Redirect output to a client’s web browser (Excel2007)
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename="' . $download_name . '.xlsx"');
